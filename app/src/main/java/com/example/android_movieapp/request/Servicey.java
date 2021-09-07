@@ -1,4 +1,4 @@
-package com.example.android_movieapp.retrofit;
+package com.example.android_movieapp.request;
 
 import com.example.android_movieapp.utils.BraveApi;
 import com.example.android_movieapp.utils.Credentials;
