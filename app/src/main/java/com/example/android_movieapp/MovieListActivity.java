@@ -2,23 +2,27 @@ package com.example.android_movieapp;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.android_movieapp.adapters.MovieRecyclerView;
+import com.example.android_movieapp.adapters.OnMovieListener;
 import com.example.android_movieapp.models.MovieModel;
 import com.example.android_movieapp.viewmodels.MovieListViewModel;
 
 import java.util.List;
 
-public class MovieListActivity extends AppCompatActivity {
+public class MovieListActivity extends AppCompatActivity implements OnMovieListener {
 
-    // Before we run our app, we need to add the Network Security config
-    Button btn;
-
+    // RecyclerView
+    private RecyclerView recyclerView;
+    private MovieRecyclerView movieRecyclerAdapter;
 
     // ViewModel
     private MovieListViewModel movieListViewModel;
@@ -28,19 +32,19 @@ public class MovieListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        btn = findViewById(R.id.btn);
+        // Toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        recyclerView = findViewById(R.id.recyclerView);
 
         movieListViewModel = new ViewModelProvider(this).get(MovieListViewModel.class);
 
+        ConfigureRecyclerView();
         // Calling the Observers
         ObserveAnyChange();
+        searchMovieApi("fast", 1);
 
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                searchMovieApi("Fast", 1);
-            }
-        });
     }
 
     // Observing any data change
@@ -53,13 +57,40 @@ public class MovieListActivity extends AppCompatActivity {
                     for (MovieModel movieModel : movieModels) {
                         // Get the data in the log
                         Log.v("Tag", "OnChanged: " + movieModel.getTitle());
+                        movieRecyclerAdapter.setmMovies(movieModels);
                     }
                 }
             }
         });
     }
 
-//    private void GetUser() {
+
+    // 4 = calling method in main activity
+    private void searchMovieApi(String query, int pageNumber) {
+        movieListViewModel.searchMovieApi(query, pageNumber);
+    }
+
+    // 5 - Initializing recyclerView
+    private void ConfigureRecyclerView() {
+        // LiveData can be passed view the constructor
+        movieRecyclerAdapter = new MovieRecyclerView( this);
+
+        recyclerView.setAdapter(movieRecyclerAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+    }
+
+    @Override
+    public void onMovieClick(int position) {
+        Toast.makeText(this, "The Position " + position, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onCategoryClick(String category) {
+
+    }
+
+    //    private void GetUser() {
 //        BraveApi braveApi = Servicey.getBraveApi();
 //
 //        Call<User> responseCall = braveApi.getUser("1");
@@ -141,8 +172,4 @@ public class MovieListActivity extends AppCompatActivity {
 //        });
 //    }
 
-    // 4 = calling method in main activity
-    private void searchMovieApi(String query, int pageNumber) {
-        movieListViewModel.searchMovieApi(query, pageNumber);
-    }
 }
