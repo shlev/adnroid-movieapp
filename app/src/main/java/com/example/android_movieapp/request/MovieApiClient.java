@@ -44,7 +44,7 @@ public class MovieApiClient {
         return mMovies;
     }
 
-    //1 This method that we are going to call throught the classes
+    //1 This method that we are going to call through the classes
     public void searchMoviesApi(String query, int pageNumber) {
 
         if ( retrieveMoviesRunnable!=null) {
@@ -82,6 +82,10 @@ public class MovieApiClient {
         public void run() {
             //Getting the response objects
             try {
+                if (cancelRequest) {
+                    return;
+                }
+
                 Response response = getMovies(query, pageNumber).execute();
                 if (response.code() == 200) {
                     List<MovieModel> list = new ArrayList<>(((MovieSearchResponse)response.body()).getMovies());
@@ -103,9 +107,6 @@ public class MovieApiClient {
             } catch ( IOException e) {
                 e.printStackTrace();
                 mMovies.postValue(null);
-            }
-            if (cancelRequest) {
-                return;
             }
         }
 

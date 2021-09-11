@@ -1,10 +1,13 @@
 package com.example.android_movieapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -36,6 +39,9 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieListe
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        //SearchView
+        SetupSearchView();
+
         recyclerView = findViewById(R.id.recyclerView);
 
         movieListViewModel = new ViewModelProvider(this).get(MovieListViewModel.class);
@@ -43,7 +49,6 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieListe
         ConfigureRecyclerView();
         // Calling the Observers
         ObserveAnyChange();
-        searchMovieApi("fast", 1);
 
     }
 
@@ -65,10 +70,7 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieListe
     }
 
 
-    // 4 = calling method in main activity
-    private void searchMovieApi(String query, int pageNumber) {
-        movieListViewModel.searchMovieApi(query, pageNumber);
-    }
+
 
     // 5 - Initializing recyclerView
     private void ConfigureRecyclerView() {
@@ -78,16 +80,52 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieListe
         recyclerView.setAdapter(movieRecyclerAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        // RecyclerView Pagination
+        //  Loading next page of the api response
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                if ( !recyclerView.canScrollVertically(1)) {
+                    // Here we need to display the next search results on the next page of api
+                    movieListViewModel.searchNextPage();
+                }
+            }
+        });
     }
 
     @Override
     public void onMovieClick(int position) {
-        Toast.makeText(this, "The Position " + position, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "The Position " + position, Toast.LENGTH_SHORT).show();
+
+        // We dont need position on the movie in recyclerview
+        // We need the id of the movie in order to get all its details
+
+        Intent intent = new Intent(this, MovieDetails.class);
+        intent.putExtra( "movie", movieRecyclerAdapter.getSelectedMovie(position) );
+        startActivity(intent);
     }
 
     @Override
     public void onCategoryClick(String category) {
 
+    }
+
+    private void SetupSearchView() {
+        final SearchView searchView = findViewById(R.id.search_view);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                movieListViewModel.searchMovieApi(
+                        // The Search string from searchview
+                        query,1);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
     }
 
     //    private void GetUser() {
